@@ -1,6 +1,6 @@
 import os
 import boto3
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 DYNAMODB_ENDPOINT = os.getenv(
     "DYNAMODB_ENDPOINT",
@@ -60,3 +60,46 @@ def delete_image_metadata(user_id: str, image_id: str) -> None:
             "SK": f"IMAGE#{image_id}"
         }
     )
+
+
+def query_images_by_user_paginated(
+    user_id: str,
+    limit: int = 10,
+    last_evaluated_key: Optional[Dict[str, Any]] = None,
+    from_date: Optional[str] = None,
+    to_date: Optional[str] = None,
+):
+    key_condition = "PK = :pk AND begins_with(SK, :sk)"
+
+    expression_values = {
+        ":pk": f"USER#{user_id}",
+        ":sk": "IMAGE#",
+    }
+
+    filter_expression = []
+    if from_date:
+        filter_expression.append("created_at >= :from_date")
+        expression_values[":from_date"] = from_date
+
+    if to_date:
+        filter_expression.append("created_at <= :to_date")
+        expression_values[":to_date"] = to_date
+
+    query_kwargs = {
+        "KeyConditionExpression": key_condition,
+        "ExpressionAttributeValues": expression_values,
+        "Limit": limit,
+    }
+
+    if filter_expression:
+        query_kwargs["FilterExpression"] = " AND ".join(filter_expression)
+
+    if last_evaluated_key:
+        query_kwargs["ExclusiveStartKey"] = last_evaluated_key
+
+    response = table.query(**query_kwargs)
+
+    return {
+        "items": response.get("Items", []),
+        "last_evaluated_key": response.get("LastEvaluatedKey"),
+    }

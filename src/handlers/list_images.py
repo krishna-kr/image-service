@@ -1,11 +1,16 @@
 import json
-from src.services.dynamodb_service import query_images_by_user
+from src.services.dynamodb_service import query_images_by_user_paginated
 from src.utils.json_utils import json_safe
 
 
 def lambda_handler(event, context):
     query_params = event.get("queryStringParameters") or {}
+
     user_id = query_params.get("user_id")
+    limit = int(query_params.get("limit", 10))
+    cursor = query_params.get("cursor")
+    from_date = query_params.get("from_date")
+    to_date = query_params.get("to_date")
 
     if not user_id:
         return {
@@ -15,17 +20,21 @@ def lambda_handler(event, context):
             })
         }
 
-    items = query_images_by_user(user_id)
+    last_evaluated_key = json.loads(cursor) if cursor else None
 
-    items.sort(
-        key=lambda x: x.get("created_at", ""),
-        reverse=True
+    result = query_images_by_user_paginated(
+        user_id=user_id,
+        limit=limit,
+        last_evaluated_key=last_evaluated_key,
+        from_date=from_date,
+        to_date=to_date,
     )
 
     return {
         "statusCode": 200,
-        "body": json.dumps({
-            "count": len(items),
-            "items": json_safe(items)
-        })
+        "body": json.dumps(json_safe({
+            "count": len(result["items"]),
+            "items": result["items"],
+            "next_cursor": result["last_evaluated_key"],
+        }))
     }
