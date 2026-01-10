@@ -44,3 +44,19 @@ def query_images_by_user(user_id: str):
         }
     )
     return response.get("Items", [])
+
+
+def get_image_metadata(user_id: str, image_id: str):
+    return get_item(
+        pk=f"USER#{user_id}",
+        sk=f"IMAGE#{image_id}"
+    )
+
+
+def delete_image_metadata(user_id: str, image_id: str) -> None:
+    table.delete_item(
+        Key={
+            "PK": f"USER#{user_id}",
+            "SK": f"IMAGE#{image_id}"
+        }
+    )
