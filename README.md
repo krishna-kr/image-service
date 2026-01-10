@@ -1,18 +1,20 @@
-# Image Service
+# Image Service (Serverless)
 
-Serverless image upload and management service using:
-- AWS Lambda
-- S3
-- DynamoDB
-- LocalStack (for local development)
+A serverless backend service for uploading, listing, downloading, and deleting images.
+Built using AWS serverless architecture and fully runnable locally using LocalStack.
 
-## Features
+---
+
+## 🚀 Features
+
 - Upload image with metadata
-- List images
-- Download image
-- Delete image
+- List images with pagination & filters
+- Download images using presigned URLs
+- Delete images (idempotent)
+- Local AWS emulation using Docker + LocalStack
+- Unit tests using pytest
 
-## Tech Stack
-- Python 3.11
-- AWS (serverless)
-- Docker + LocalStack
+---
+
+## 🏗️ Architecture
+
