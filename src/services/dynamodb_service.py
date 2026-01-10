@@ -33,3 +33,14 @@ def get_item(pk: str, sk: str) -> Dict[str, Any] | None:
         }
     )
     return response.get("Item")
+
+
+def query_images_by_user(user_id: str):
+    response = table.query(
+        KeyConditionExpression="PK = :pk AND begins_with(SK, :sk)",
+        ExpressionAttributeValues={
+            ":pk": f"USER#{user_id}",
+            ":sk": "IMAGE#"
+        }
+    )
+    return response.get("Items", [])
